@@ -1,3 +1,109 @@
+## 1.0.33
+*(2019-06-18)*
+
+#### Fixed
+* Issue with fulltext search (posts list)
+
+---
+
+## 1.0.32
+*(2019-05-08)*
+
+#### Fixed
+* Change default sort from updated_at to created_at
+* Fix 147
+* Fix 146
+
+---
+
+## 1.0.31
+*(2019-04-22)*
+
+#### Fixed
+* Tags issue
+* Recent posts
+
+---
+
+## 1.0.30
+*(2019-02-12)*
+
+#### Fixed
+* Web API
+
+---
+
+## 1.0.29
+*(2019-02-05)*
+
+#### Improvements
+* Added API for manage posts
+
+---
+
+## 1.0.28
+*(2018-12-13)*
+
+#### Fixed
+* Issue with author url [#124]()
+
+---
+
+## 1.0.27
+*(2018-12-03)*
+
+#### Fixed
+* Compatibility with Magento 2.3
+
+---
+
+## 1.0.26
+*(2018-08-20)*
+
+#### Fixed
+* [#111](../../issues/111) Wrong table when trying to save a post "mage_mst_blog_post_prodct"
+
+---
+
+## 1.0.25
+*(2018-08-17)*
+
+#### Fixed
+* Issue with saving post without tags
+
+---
+
+## 1.0.24
+*(2018-08-13)*
+
+#### Fixed
+* Issue with compilation
+* Issue with Excerpt checkbox
+
+---
+
+## 1.0.23
+*(2018-08-10)*
+
+#### Improvements
+* Code API & UI interface for post edit page
+
+#### Fixed
+* Issue with toolbar
+* [#101](../../issues/101)
+* [#108](../../issues/101)
+* [#103](../../issues/101)
+
+---
+
+## 1.0.22
+*(2018-08-02)*
+
+#### Fixed
+* [#40](../../issues/40)
+
+---
+
 # Change log
 
 ## 1.0.21

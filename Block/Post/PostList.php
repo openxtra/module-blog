@@ -3,6 +3,7 @@
 namespace Mirasvit\Blog\Block\Post;
 
 use Magento\Framework\DataObject\IdentityInterface;
+use Mirasvit\Blog\Api\Repository\PostRepositoryInterface;
 use Mirasvit\Blog\Model\Config;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\Registry;
@@ -16,28 +17,22 @@ class PostList extends AbstractBlock implements IdentityInterface
     protected $defaultToolbarBlock = 'Mirasvit\Blog\Block\Post\PostList\Toolbar';
 
     /**
-     * @var PostCollectionFactory
+     * @var PostRepositoryInterface
      */
-    protected $postCollectionFactory;
+    private $postRepository;
 
     /**
      * @var \Mirasvit\Blog\Model\ResourceModel\Post\Collection
      */
     protected $collection;
 
-    /**
-     * @param PostCollectionFactory $postCollectionFactory
-     * @param Config                $config
-     * @param Registry              $registry
-     * @param Context               $context
-     */
     public function __construct(
-        PostCollectionFactory $postCollectionFactory,
+        PostRepositoryInterface $postRepository,
         Config $config,
         Registry $registry,
         Context $context
     ) {
-        $this->postCollectionFactory = $postCollectionFactory;
+        $this->postRepository = $postRepository;
 
         parent::__construct($config, $registry, $context);
     }
@@ -116,6 +111,7 @@ class PostList extends AbstractBlock implements IdentityInterface
 
     /**
      * @param \Mirasvit\Blog\Model\ResourceModel\Post\Collection $collection
+     *
      * @return $this
      */
     public function setCollection($collection)
@@ -127,7 +123,6 @@ class PostList extends AbstractBlock implements IdentityInterface
 
     /**
      * Return identifiers for post content.
-     *
      * @return array
      */
     public function getIdentities()
@@ -143,7 +138,6 @@ class PostList extends AbstractBlock implements IdentityInterface
 
     /**
      * Retrieve current category model object.
-     *
      * @return \Mirasvit\Blog\Model\Category
      */
     public function getCategory()
@@ -183,10 +177,10 @@ class PostList extends AbstractBlock implements IdentityInterface
         $toolbar = $this->getToolbarBlock();
 
         if (empty($this->collection)) {
-            $collection = $this->postCollectionFactory->create()
+            $collection = $this->postRepository->getCollection()
                 ->addAttributeToSelect([
                     'name', 'featured_image', 'featured_alt', 'featured_show_on_home',
-                    'short_content', 'content', 'url_key'
+                    'short_content', 'content', 'url_key',
                 ])
                 ->addStoreFilter($this->context->getStoreManager()->getStore()->getId())
                 ->addVisibilityFilter();
@@ -216,6 +210,7 @@ class PostList extends AbstractBlock implements IdentityInterface
             if ($order = $toolbar->getCurrentOrder()) {
                 $collection->setOrder($order, $toolbar->getCurrentDirection());
             }
+            $collection->defaultOrder();
 
             $this->collection = $collection;
         }
@@ -225,10 +220,36 @@ class PostList extends AbstractBlock implements IdentityInterface
 
     /**
      * @param \Mirasvit\Blog\Model\Post $post
+     *
      * @return string
      */
     public function getFeaturedAlt($post)
     {
-        return $post->getFeaturedAlt() ?: $post->getName();
+        return $post->getFeaturedAlt() ? : $post->getName();
+    }
+
+    /**
+     * @param \Mirasvit\Blog\Model\Post $post
+     *
+     * @return string
+     */
+    public function getContentMoreTag($post)
+    {
+        if ($this->config->getExcerptsEnabled()) {
+            $size = $this->config->getExcerptSize();
+            if ($exerpt = strpos($post->getContent(), '<!--more-->')) {
+                return substr($post->getContent(), 0, $exerpt);
+            } elseif ($post->getShortContent()) {
+                return $post->getShortContent();
+            } elseif (preg_match('/^.{1,' . $size . '}\b/s', $this->stripTags(
+                preg_replace("/<style\\b[^>]*>(.*?)<\\/style>/s", "", $post->getContent())
+            ), $match)) {
+                return $match[0];
+            }
+
+            return $post->getContent();
+        }
+
+        return '';
     }
 }

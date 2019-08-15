@@ -1,16 +1,24 @@
 <?php
+
 namespace Mirasvit\Blog\Model;
 
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\UrlInterface as MagentoUrlInterface;
 use Magento\Framework\DataObject;
+use Magento\Framework\UrlInterface as MagentoUrlInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Mirasvit\Blog\Api\Data\CategoryInterface;
+use Mirasvit\Blog\Api\Data\PostInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Url
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
     /**
      * @var ScopeConfigInterface
      */
@@ -46,16 +54,6 @@ class Url
      */
     protected $config;
 
-    /**
-     * @param StoreManagerInterface $storeManager
-     * @param Config                $config
-     * @param ScopeConfigInterface  $scopeConfig
-     * @param PostFactory           $postFactory
-     * @param CategoryFactory       $categoryFactory
-     * @param TagFactory            $tagFactory
-     * @param AuthorFactory         $authorFactory
-     * @param MagentoUrlInterface   $urlManager
-     */
     public function __construct(
         StoreManagerInterface $storeManager,
         Config $config,
@@ -86,11 +84,12 @@ class Url
 
     /**
      * @param Post $post
+     * @param bool $useSid
      * @return string
      */
-    public function getPostUrl($post)
+    public function getPostUrl($post, $useSid = true)
     {
-        return $this->getUrl('/' . $post->getUrlKey(), 'post');
+        return $this->getUrl('/' . $post->getUrlKey(), 'post', ['_nosid' => !$useSid]);
     }
 
     /**
@@ -173,7 +172,7 @@ class Url
      */
     private function addSuffix($url, $suffix)
     {
-        $parts = explode('?', $url, 2);
+        $parts    = explode('?', $url, 2);
         $parts[0] = rtrim($parts[0], '/') . $suffix;
 
         return implode('?', $parts);
@@ -189,7 +188,7 @@ class Url
     public function match($pathInfo)
     {
         $identifier = trim($pathInfo, '/');
-        $parts = explode('/', $identifier);
+        $parts      = explode('/', $identifier);
 
         if (count($parts) >= 1) {
             $parts[count($parts) - 1] = $this->trimSuffix($parts[count($parts) - 1]);
@@ -201,7 +200,7 @@ class Url
 
         if (count($parts) > 1) {
             unset($parts[0]);
-            $parts = array_values($parts);
+            $parts  = array_values($parts);
             $urlKey = implode('/', $parts);
             $urlKey = urldecode($urlKey);
             $urlKey = $this->trimSuffix($urlKey);
@@ -246,7 +245,7 @@ class Url
 
         if ($parts[0] == 'author' && isset($parts[1])) {
             $author = $this->authorFactory->create()->getCollection()
-                ->addFieldToFilter('user_id', $parts[1])
+                ->addFieldToFilter('main_table.user_id', $parts[1])
                 ->getFirstItem();
 
             if ($author->getId()) {
@@ -271,7 +270,7 @@ class Url
                     'module_name'     => 'blog',
                     'controller_name' => 'category',
                     'action_name'     => 'rss',
-                    'params'          => ['id' => $category->getId()],
+                    'params'          => [CategoryInterface::ID => $category->getId()],
                 ]);
             } else {
                 return false;
@@ -296,7 +295,7 @@ class Url
                 'module_name'     => 'blog',
                 'controller_name' => 'post',
                 'action_name'     => 'view',
-                'params'          => ['id' => $post->getId()],
+                'params'          => [PostInterface::ID => $post->getId()],
             ]);
         }
 
@@ -309,7 +308,7 @@ class Url
                 'module_name'     => 'blog',
                 'controller_name' => 'category',
                 'action_name'     => 'view',
-                'params'          => ['id' => $category->getId()],
+                'params'          => [CategoryInterface::ID => $category->getId()],
             ]);
         }
 
@@ -318,7 +317,6 @@ class Url
 
     /**
      * Return url without suffix
-     *
      * @param string $key
      * @return string
      */

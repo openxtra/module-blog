@@ -33,10 +33,10 @@ class Config
     protected $urlManager;
 
     /**
-     * @param ScopeConfigInterface  $scopeConfig
+     * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
-     * @param Filesystem            $filesystem
-     * @param MagentoUrlInterface   $urlManager
+     * @param Filesystem $filesystem
+     * @param MagentoUrlInterface $urlManager
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -44,10 +44,10 @@ class Config
         Filesystem $filesystem,
         MagentoUrlInterface $urlManager
     ) {
-        $this->scopeConfig  = $scopeConfig;
+        $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
-        $this->filesystem   = $filesystem;
-        $this->urlManager   = $urlManager;
+        $this->filesystem = $filesystem;
+        $this->urlManager = $urlManager;
     }
 
     /**
@@ -81,7 +81,25 @@ class Config
      */
     public function isDisplayInMenu()
     {
-        return $this->scopeConfig->getValue('blog/display/main_menu');
+        return $this->scopeConfig->getValue('blog/display/main_menu',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getExcerptsEnabled()
+    {
+        return $this->scopeConfig->getValue('blog/display/enable_excerpts',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+    }
+    /**
+     * @return string
+     */
+    public function getExcerptSize()
+    {
+        return $this->scopeConfig->getValue('blog/display/excerpt_size',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -224,7 +242,7 @@ class Config
     /**
      * @return string
      */
-    public function getMediaPath()
+    public function getMediaPath($image)
     {
         $path = $this->filesystem
                 ->getDirectoryRead(DirectoryList::MEDIA)
@@ -236,24 +254,7 @@ class Config
                 ->create($path);
         }
 
-        return $path;
-    }
-
-    /**
-     * @param string $dirname
-     * @return string
-     */
-    public function getWidgetMediaPath($dirname)
-    {
-        $path = $this->getMediaPath() . DIRECTORY_SEPARATOR . $dirname;
-
-        if (!file_exists($path) || !is_dir($path)) {
-            $this->filesystem
-                ->getDirectoryWrite(DirectoryList::MEDIA)
-                ->create($path);
-        }
-
-        return $path;
+        return $path . '/' . $image;
     }
 
     /**
